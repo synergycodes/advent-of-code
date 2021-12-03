@@ -14,10 +14,17 @@ const readline = require('readline');
         const value = Number(valueAsText);
 
         switch (command) {
-            case 'forward': position += value; break;
-            case 'up': depth -= value; break;
-            case 'down': depth += value; break;
-            default: console.log('invalid command');
+            case 'forward':
+                position += value;
+                break;
+            case 'up':
+                depth -= value;
+                break;
+            case 'down':
+                depth += value;
+                break;
+            default:
+                console.log('invalid command');
         }
     });
 

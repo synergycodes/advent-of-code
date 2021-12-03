@@ -9,7 +9,7 @@ const readline = require('readline');
     const sumArray = arr => arr.reduce((p, c) => p + c, 0);
 
     let previousWindow = [];
-    let currentWindow = []
+    let currentWindow = [];
     let depthIncreases = 0;
 
     lineReader.on('line', line => {
