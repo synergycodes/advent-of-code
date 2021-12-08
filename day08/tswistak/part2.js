@@ -108,8 +108,6 @@ const readline = require("readline");
     const result = parseInt(
       normalizedOutput.map((x) => solutions.get(x)).join("")
     );
-    console.log(output, normalizedOutput, result);
-    console.log(patterns, solutions);
     sum += result;
   });
 
