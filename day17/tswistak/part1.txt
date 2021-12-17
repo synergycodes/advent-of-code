@@ -1,0 +1,7 @@
+No need for any algorithm, just count:
+
+|minY| * ((|minY| - 1) / 2)
+
+In my case it was:
+
+|-225| * ((|-225| - 1) / 2) = 225 * (224 / 2) = 225 * 112 = 25200
