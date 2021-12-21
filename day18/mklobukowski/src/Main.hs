@@ -25,12 +25,15 @@ up (n, Top) = (n, Top)
 up (n, Left' c n') = (Pair n n', c)
 up (n, Right' c n') = (Pair n' n, c)
 
+flatten (RegularNumber n, c) = [(RegularNumber n, c)]
+flatten (Pair l r, c) = flatten (l, left . c) ++ flatten (r, right . c)
+
 p = Pair
 
 n = RegularNumber
 
 sample =
-  p (n 1) (p (n 2) (n 3))
+  p (p (n 1) (n 11)) (p (n 2) (n 3))
 
 goUp (RegularNumber _, Top) = Nothing
 goUp (RegularNumber _, Right' _ _) = Nothing
@@ -46,4 +49,4 @@ lrn2 = left . up . up $ rn2
 
 main :: IO ()
 main = do
-  print $ goUp rn2
+  print . map fst . flatten  $ (sample, top) 
