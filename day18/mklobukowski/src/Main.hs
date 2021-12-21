@@ -31,8 +31,20 @@ up l@(_, Top) = l
 up (n, Left' c n') = (Pair n n', c)
 up (n, Right' c n') = (Pair n' n, c)
 
-flatten (RegularNumber n, c, lvl) = [(RegularNumber n, c, lvl)]
-flatten (Pair l r, c, lvl) = flatten (l, left . c, lvl + 1) ++ flatten (r, right . c, lvl + 1)
+upMost :: Location -> SnailfishNumber
+upMost (n, Top) = n
+upMost l = upMost . up $ l
+
+modify :: (SnailfishNumber -> SnailfishNumber) -> (SnailfishNumber -> Location) -> SnailfishNumber -> SnailfishNumber
+modify m f n =
+  let (v, c) = f n
+      v' = m v
+   in upMost (v', c)
+
+flatten' (RegularNumber n, c, lvl) = [(RegularNumber n, c, lvl)]
+flatten' (Pair l r, c, lvl) = flatten' (l, left . c, lvl + 1) ++ flatten' (r, right . c, lvl + 1)
+
+flatten n = flatten' (n, top, 0)
 
 p = Pair
 
@@ -41,12 +53,12 @@ n = RegularNumber
 sample =
   p (p (n 1) (n 11)) (p (n 2) (n 3))
 
-rn2 = left . right . top $ sample
+rns = flatten sample
 
-rn3 = right . right . top $ sample
-
-lrn2 = left . up . up $ rn2
+fix11 = 
+  let (_, f, _) = rns !! 1
+  in modify (const (RegularNumber 9)) f sample
 
 main :: IO ()
 main = do
-  print . map (\(n, _, l) -> (n, l)) . flatten $ (sample, top, 0)
+  print  fix11
