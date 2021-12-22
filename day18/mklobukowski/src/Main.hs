@@ -1,5 +1,7 @@
 module Main where
 
+import Data.Foldable
+
 data SnailfishNumber
   = RegularNumber Int
   | Pair SnailfishNumber SnailfishNumber
@@ -44,21 +46,55 @@ modify m f n =
 flatten' (RegularNumber n, c, lvl) = [(RegularNumber n, c, lvl)]
 flatten' (Pair l r, c, lvl) = flatten' (l, left . c, lvl + 1) ++ flatten' (r, right . c, lvl + 1)
 
+lvl (_, _, l) = l
+
+findPair [] = Nothing
+findPair [n] = Nothing
+findPair (n1 : n2 : ns)
+  | lvl n1 == lvl n2 = Just (n1, n2)
+  | otherwise = findPair (n2 : ns)
+
 flatten n = flatten' (n, top, 0)
 
 p = Pair
 
 n = RegularNumber
 
-sample =
-  p (p (n 1) (n 11)) (p (n 2) (n 3))
+-- [[[[[9,8],1],2],3],4]
+sample1 =
+  p (p (p (p (p (n 9) (n 8)) (n 1)) (n 2)) (n 3)) (n 4)
 
-rns = flatten sample
+-- [7,[6,[5,[4,[3,2]]]]]
+sample2 =
+  p (n 7) (p (n 6) (p (n 5) (p (n 4) (p (n 3) (n 2)))))
 
-fix11 = 
-  let (_, f, _) = rns !! 1
-  in modify (const (RegularNumber 9)) f sample
+sample3 =
+  p (p (n 1) (n 2)) (p (n 3) (n 4))
+
+previous :: Location -> Maybe Location
+previous l@(RegularNumber _, Right' _ _) = Just . left . up $ l
+previous l@(RegularNumber _, Left' _ _) =
+  let goUp l'@(Pair _ _, Right' _ _) = Just . left . up $ l'
+      goUp l'@(Pair _ _, Left' _ _) = goUp . up $ l'
+      goUp l'@(Pair _ _, Top) = Nothing
+      goUp _ = Nothing
+      goDown l'@(RegularNumber _, _) = l'
+      goDown l' = goDown . right $  l'
+   in  fmap goDown . goUp . up $ l
+previous _ = Nothing
 
 main :: IO ()
 main = do
-  print  fix11
+  print . right . right . top $ sample3
+  print ""
+  print . previous . right . right . top $ sample3
+  print ""
+  print .  ((=<<) previous . previous) . right . right . top $ sample3
+  print ""
+  print .  ((=<<) previous . (=<<) previous . previous) . right . right . top $ sample3
+  print ""
+  print .  ((=<<) previous . (=<<) previous . (=<<) previous . previous) . right . right . top $ sample3
+
+-- print . previous . right . right . left . left . left . top $ sample1
+-- print . previous . right . left . left . left . left . top $ sample
+-- print . fmap (\(n, _, l) -> (n, l)) . flatten $ sample
