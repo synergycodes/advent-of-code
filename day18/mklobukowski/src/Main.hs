@@ -37,25 +37,6 @@ upMost :: Location -> SnailfishNumber
 upMost (n, Top) = n
 upMost l = upMost . up $ l
 
-modify :: (SnailfishNumber -> SnailfishNumber) -> (SnailfishNumber -> Location) -> SnailfishNumber -> SnailfishNumber
-modify m f n =
-  let (v, c) = f n
-      v' = m v
-   in upMost (v', c)
-
-flatten' (RegularNumber n, c, lvl) = [(RegularNumber n, c, lvl)]
-flatten' (Pair l r, c, lvl) = flatten' (l, left . c, lvl + 1) ++ flatten' (r, right . c, lvl + 1)
-
-lvl (_, _, l) = l
-
-findPair [] = Nothing
-findPair [n] = Nothing
-findPair (n1 : n2 : ns)
-  | lvl n1 == lvl n2 = Just (n1, n2)
-  | otherwise = findPair (n2 : ns)
-
-flatten n = flatten' (n, top, 0)
-
 p = Pair
 
 n = RegularNumber
@@ -113,7 +94,3 @@ main :: IO ()
 main = do
   print . fmap upMost . explode . left . top $ sample3
   print ""
-
--- print . previous . right . right . left . left . left . top $ sample1
--- print . previous . right . left . left . left . left . top $ sample
--- print . fmap (\(n, _, l) -> (n, l)) . flatten $ sample
