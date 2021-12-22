@@ -83,6 +83,18 @@ previous l@(RegularNumber _, Left' _ _) =
    in  fmap goDown . goUp . up $ l
 previous _ = Nothing
 
+next :: Location -> Maybe Location
+next l@(RegularNumber _, Left' _ _) = Just . right . up $ l
+next l@(RegularNumber _, Right' _ _) =
+  let goUp l'@(Pair _ _, Left' _ _) = Just . right . up $ l'
+      goUp l'@(Pair _ _, Right' _ _) = goUp . up $ l'
+      goUp l'@(Pair _ _, Top) = Nothing
+      goUp _ = Nothing
+      goDown l'@(RegularNumber _, _) = l'
+      goDown l' = goDown . left $  l'
+   in  fmap goDown . goUp . up $ l
+next _ = Nothing
+
 main :: IO ()
 main = do
   print . right . right . top $ sample3
@@ -93,7 +105,9 @@ main = do
   print ""
   print .  ((=<<) previous . (=<<) previous . previous) . right . right . top $ sample3
   print ""
-  print .  ((=<<) previous . (=<<) previous . (=<<) previous . previous) . right . right . top $ sample3
+  print .  ((=<<) next . (=<<) previous . (=<<) previous . previous) . right . right . top $ sample3
+  print ""
+  print .  ((=<<) next . (=<<) next . (=<<) previous . (=<<) previous . previous) . right . right . top $ sample3
 
 -- print . previous . right . right . left . left . left . top $ sample1
 -- print . previous . right . left . left . left . left . top $ sample
