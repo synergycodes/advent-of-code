@@ -102,10 +102,10 @@ next l@(_, Right' _ _, _) =
    in goUp l
 
 findPrev :: (Location -> Bool) -> Location -> Maybe Location
-findPrev p l = prev l >>= \l' -> if p l' then Just l' else findPrev p l'
+findPrev p l = if p l then Just l else prev l >>= findPrev p
 
 findNext :: (Location -> Bool) -> Location -> Maybe Location
-findNext p l = next l >>= \l' -> if p l' then Just l' else findNext p l'
+findNext p l = if p l then Just l else next l >>= findNext p
 
 -- [[[[[9,8],1],2],3],4]
 sample1 =
