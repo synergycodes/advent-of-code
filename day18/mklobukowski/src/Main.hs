@@ -41,20 +41,6 @@ p = Pair
 
 n = RegularNumber
 
--- explode :: Location -> Maybe Location
--- explode l@(Pair (RegularNumber nl) (RegularNumber nr), _, _) =
---   let s1 = left l
---       s2 = case previous s1 of
---         Just (RegularNumber n, c, l) -> next (RegularNumber (n + nl), c, l)
---         _ -> Just s1
---       s3 = case s2 >>= next >>= next of
---         Just (RegularNumber n, c, l) -> previous (RegularNumber (n + nr), c, l)
---         _ -> s2
---    in case up <$> s3 of
---         Just (Pair _ _, c, l) -> Just (RegularNumber 0, c, l)
---         _ -> Nothing
--- explode l = Nothing
-
 prev l@(_, Top, _) = Nothing
 prev l@(_, Left' _ _, _) = Just . up $ l
 prev l@(_, Right' _ _, _) =
@@ -73,13 +59,18 @@ next l@(_, Right' _ _, _) =
   let goUp l'@(_, Left' _ _, _) = Just . right . up $ l'
       goUp l'@(_, Right' _ _, _) = goUp . up $ l'
       goUp l'@(_, Top, _) = Nothing
-   in goUp l
+   in if right l == l then goUp l else Just . left $ l
 
 findPrev :: (Location -> Bool) -> Location -> Maybe Location
 findPrev p l = if p l then Just l else prev l >>= findPrev p
 
 findNext :: (Location -> Bool) -> Location -> Maybe Location
 findNext p l = if p l then Just l else next l >>= findNext p
+
+
+pairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), _, level) = level > 4
+pairNestedInFourPairs _ = False
+
 
 -- [[[[[9,8],1],2],3],4]
 sample1 =
@@ -96,10 +87,13 @@ sample4 =
   -- [[1,2], 3]
   p (p (n 1) (p (n 21) (n 22))) (n 3)
 
+sample5 = -- [[6,[5,[4,[3,2]]]],1]
+  p (p (n 6) (p (n 5) (p (n 4) (p (n 3) (n 2))))) (n 1)
+
 pred' (Pair (RegularNumber _) (RegularNumber _), _, _) = True
-pred' _ = False 
+pred' _ = False
 
 main :: IO ()
 main = do
-  print . findNext pred' . top $ sample4
+  print . findNext pred' . top $ sample5
   print ""
