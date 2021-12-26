@@ -7,6 +7,9 @@ data SnailfishNumber
   | Pair SnailfishNumber SnailfishNumber
   deriving (Show, Eq)
 
+isRegularNumber (RegularNumber _) = True
+isRegularNumber _ = False
+
 type Level = Int
 
 data Context
@@ -15,50 +18,50 @@ data Context
   | Right' Context SnailfishNumber
   deriving (Show, Eq)
 
-type Location = (SnailfishNumber, Context, Level)
+type Location = (SnailfishNumber, (Context, Level))
 
 top :: SnailfishNumber -> Location
-top n = (n, Top, 1)
+top n = (n, (Top, 1))
 
 left :: Location -> Location
-left rn@(RegularNumber n, _, _) = rn
-left (Pair n1 n2, c, l) = (n1, Left' c n2, l + 1)
+left rn@(RegularNumber n, _) = rn
+left (Pair n1 n2, (c, l)) = (n1, (Left' c n2, l + 1))
 
 right :: Location -> Location
-right rn@(RegularNumber n, _, _) = rn
-right (Pair n1 n2, c, l) = (n2, Right' c n1, l + 1)
+right rn@(RegularNumber n, _) = rn
+right (Pair n1 n2, (c, l)) = (n2, (Right' c n1, l + 1))
 
 up :: Location -> Location
-up l@(_, Top, _) = l
-up (n, Left' c n', l) = (Pair n n', c, l - 1)
-up (n, Right' c n', l) = (Pair n' n, c, l - 1)
+up l@(_, (Top, _)) = l
+up (n, (Left' c n', l)) = (Pair n n', (c, l - 1))
+up (n, (Right' c n', l)) = (Pair n' n, (c, l - 1))
 
 upMost :: Location -> SnailfishNumber
-upMost (n, Top, _) = n
+upMost (n, (Top, _)) = n
 upMost l = upMost . up $ l
 
 p = Pair
 
 n = RegularNumber
 
-prev l@(_, Top, _) = Nothing
-prev l@(_, Left' _ _, _) = Just . up $ l
-prev l@(_, Right' _ _, _) =
-  let goUp l'@(_, Right' _ _, _) = Just . left . up $ l'
-      goUp l'@(_, Left' _ _, _) = goUp . up $ l'
-      goUp l'@(_, Top, _) = Nothing
+prev l@(_, (Top, _)) = Nothing
+prev l@(_, (Left' _ _, _)) = Just . up $ l
+prev l@(_, (Right' _ _, _)) =
+  let goUp l'@(_, (Right' _ _, _)) = Just . left . up $ l'
+      goUp l'@(_, (Left' _ _, _)) = goUp . up $ l'
+      goUp l'@(_, (Top, _)) = Nothing
       goRight l' = if l' == right l' then l' else goRight . right $ l'
    in fmap goRight . goUp $ l
 
-next l@(_, Top, _) = Just . left $ l
-next l@(_, Left' _ _, _) =
+next l@(_, (Top, _)) = Just . left $ l
+next l@(_, (Left' _ _, _)) =
   if left l == l
     then Just . right . up $ l
     else Just . left $ l
-next l@(_, Right' _ _, _) =
-  let goUp l'@(_, Left' _ _, _) = Just . right . up $ l'
-      goUp l'@(_, Right' _ _, _) = goUp . up $ l'
-      goUp l'@(_, Top, _) = Nothing
+next l@(_, (Right' _ _, _)) =
+  let goUp l'@(_, (Left' _ _, _)) = Just . right . up $ l'
+      goUp l'@(_, (Right' _ _, _)) = goUp . up $ l'
+      goUp l'@(_, (Top, _)) = Nothing
    in if right l == l then goUp l else Just . left $ l
 
 findPrev :: (Location -> Bool) -> Location -> Maybe Location
@@ -67,10 +70,13 @@ findPrev p l = if p l then Just l else prev l >>= findPrev p
 findNext :: (Location -> Bool) -> Location -> Maybe Location
 findNext p l = if p l then Just l else next l >>= findNext p
 
+isPairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), (_, level)) = level > 4
+isPairNestedInFourPairs _ = False
 
-pairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), _, level) = level > 4
-pairNestedInFourPairs _ = False
-
+explode l@(Pair (RegularNumber rv) (RegularNumber lv), _) =
+  let s1 = findPrev (isRegularNumber . fst) l
+   in undefined
+explode _ = undefined
 
 -- [[[[[9,8],1],2],3],4]
 sample1 =
@@ -87,7 +93,8 @@ sample4 =
   -- [[1,2], 3]
   p (p (n 1) (p (n 21) (n 22))) (n 3)
 
-sample5 = -- [[6,[5,[4,[3,2]]]],1]
+sample5 =
+  -- [[6,[5,[4,[3,2]]]],1]
   p (p (n 6) (p (n 5) (p (n 4) (p (n 3) (n 2))))) (n 1)
 
 pred' (Pair (RegularNumber _) (RegularNumber _), _, _) = True
@@ -95,5 +102,5 @@ pred' _ = False
 
 main :: IO ()
 main = do
-  print . findNext pred' . top $ sample5
+  print . findNext isPairNestedInFourPairs . top $ sample2
   print ""
