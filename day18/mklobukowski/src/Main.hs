@@ -81,14 +81,17 @@ n = RegularNumber
 --         _ -> Nothing
 -- explode l = Nothing
 
-previous l@(_, Top, _) = Nothing
-previous l@(_, Left' _ _, _) = Just . up $ l
-previous l@(_, Right' _ _, _) =
+prev l@(_, Top, _) = Nothing
+prev l@(_, Left' _ _, _) = Just . up $ l
+prev l@(_, Right' _ _, _) =
   let goUp l'@(_, Right' _ _, _) = Just . left . up $ l'
       goUp l'@(_, Left' _ _, _) = goUp . up $ l'
       goUp l'@(_, Top, _) = Nothing
       goRight l' = if l' == right l' then l' else goRight . right $ l'
    in fmap goRight . goUp $ l
+
+findPrev :: (Location -> Bool) -> Location -> Maybe Location
+findPrev p l = prev l >>= \ l' -> if p l' then Just l' else findPrev p l'
 
 -- [[[[[9,8],1],2],3],4]
 sample1 =
@@ -107,5 +110,5 @@ sample4 =
 
 main :: IO ()
 main = do
-  print . previous . right . top $ sample4
+  print . prev . right . top $ sample4
   print ""
