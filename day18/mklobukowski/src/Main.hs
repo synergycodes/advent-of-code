@@ -1,7 +1,7 @@
 module Main where
 
+import Control.Monad ((<=<))
 import Data.Foldable
-import Control.Monad ( (<=<) )
 
 data SnailfishNumber
   = RegularNumber Int
@@ -90,8 +90,22 @@ prev l@(_, Right' _ _, _) =
       goRight l' = if l' == right l' then l' else goRight . right $ l'
    in fmap goRight . goUp $ l
 
+next l@(_, Top, _) = Just . left $ l
+next l@(_, Left' _ _, _) =
+  if left l == l
+    then Just . right . up $ l
+    else Just . left $ l
+next l@(_, Right' _ _, _) =
+  let goUp l'@(_, Left' _ _, _) = Just . right . up $ l'
+      goUp l'@(_, Right' _ _, _) = goUp . up $ l'
+      goUp l'@(_, Top, _) = Nothing
+   in goUp l
+
 findPrev :: (Location -> Bool) -> Location -> Maybe Location
-findPrev p l = prev l >>= \ l' -> if p l' then Just l' else findPrev p l'
+findPrev p l = prev l >>= \l' -> if p l' then Just l' else findPrev p l'
+
+findNext :: (Location -> Bool) -> Location -> Maybe Location
+findNext p l = next l >>= \l' -> if p l' then Just l' else findNext p l'
 
 -- [[[[[9,8],1],2],3],4]
 sample1 =
@@ -106,9 +120,12 @@ sample3 =
 
 sample4 =
   -- [[1,2], 3]
-  p (p (n 1) (n 2)) (n 3)
+  p (p (n 1) (p (n 21) (n 22))) (n 3)
+
+pred' (Pair (RegularNumber _) (RegularNumber _), _, _) = True
+pred' _ = False 
 
 main :: IO ()
 main = do
-  print . prev . right . top $ sample4
+  print . findNext pred' . top $ sample4
   print ""
