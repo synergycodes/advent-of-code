@@ -1,7 +1,8 @@
 module Main where
 
+import Control.Applicative (Alternative ((<|>)))
 import Control.Monad ((<=<))
-import Control.Applicative ( Alternative((<|>)) ) 
+import Data.Maybe (fromMaybe)
 
 data SnailfishNumber
   = RegularNumber Int
@@ -78,18 +79,20 @@ isRegularNumber' = isRegularNumber . fst
 
 replaceWithZero (_, c) = (RegularNumber 0, c)
 
-explode l1@(Pair (RegularNumber rv) (RegularNumber lv), _) =
-  let l2 = case findPrev isRegularNumber' l1 of
-        Just (RegularNumber v, c) ->
-          fmap up . findNext isRegularNumber' . up $ (RegularNumber (v + lv), c)
-        _ -> Just l1
-      l3 = case findNext isRegularNumber' =<< l2 of
-        Just (RegularNumber v, c) ->
-          fmap up . findPrev (isRegularNumber . fst) . up $ (RegularNumber (v + rv), c)
-        _ -> l2
-   in case l3 of
-        Just (_, c) -> (RegularNumber 0, c)
-        _ -> l1
+addLeftValue (Pair (RegularNumber v) _, _) (RegularNumber v', c) =
+  (RegularNumber (v + v'), c)
+addLeftValue _ n = n
+
+addRightValue (Pair _ (RegularNumber v), _) (RegularNumber v', c) =
+  (RegularNumber (v + v'), c)
+addRightValue _ n = n
+
+explode l0@(Pair (RegularNumber rv) (RegularNumber lv), _) =
+  let l1 = fmap (addLeftValue l0) . findPrev isRegularNumber' $ l0
+      l2 = (findNext isPairNestedInFourPairs =<< l1) <|> Just l0
+      l3 = fmap (addRightValue l0) . findNext isRegularNumber' =<< (next . right) =<< l2
+      l4 = (findPrev isPairNestedInFourPairs =<< l3) <|> l2
+   in replaceWithZero . fromMaybe l0 $ l4
 explode l = l
 
 -- [[[[[9,8],1],2],3],4]
@@ -116,20 +119,8 @@ pred' _ = False
 
 main :: IO ()
 main = do
-  let l0 = findNext isPairNestedInFourPairs . top $ sample1
-  print l0
-  print ""
-  let l1 = findPrev isRegularNumber' =<< l0
-  print l1
-  print ""
-  let l2 = (findNext isPairNestedInFourPairs =<< l1) <|> l0
-  print l2
-  print ""
-  let l3 = findNext isRegularNumber' =<< (next . right) =<< l2
-  print l3
-  print ""
-  let l4 = (findPrev isPairNestedInFourPairs =<< l3) <|> l2
-  print l4
+  let l0 = findNext isPairNestedInFourPairs . top $ sample5
+  print $ upMost . explode <$> l0
   print ""
   return ()
 
