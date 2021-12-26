@@ -1,6 +1,7 @@
 module Main where
 
 import Control.Monad ((<=<))
+import Control.Applicative ( Alternative((<|>)) ) 
 
 data SnailfishNumber
   = RegularNumber Int
@@ -73,10 +74,23 @@ findNext p l = if p l then Just l else next l >>= findNext p
 isPairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), (_, level)) = level > 4
 isPairNestedInFourPairs _ = False
 
-explode l@(Pair (RegularNumber rv) (RegularNumber lv), _) =
-  let s1 = findPrev (isRegularNumber . fst) l
-   in undefined
-explode _ = undefined
+isRegularNumber' = isRegularNumber . fst
+
+replaceWithZero (_, c) = (RegularNumber 0, c)
+
+explode l1@(Pair (RegularNumber rv) (RegularNumber lv), _) =
+  let l2 = case findPrev isRegularNumber' l1 of
+        Just (RegularNumber v, c) ->
+          fmap up . findNext isRegularNumber' . up $ (RegularNumber (v + lv), c)
+        _ -> Just l1
+      l3 = case findNext isRegularNumber' =<< l2 of
+        Just (RegularNumber v, c) ->
+          fmap up . findPrev (isRegularNumber . fst) . up $ (RegularNumber (v + rv), c)
+        _ -> l2
+   in case l3 of
+        Just (_, c) -> (RegularNumber 0, c)
+        _ -> l1
+explode l = l
 
 -- [[[[[9,8],1],2],3],4]
 sample1 =
@@ -102,5 +116,25 @@ pred' _ = False
 
 main :: IO ()
 main = do
-  print . findNext isPairNestedInFourPairs . top $ sample2
+  let l0 = findNext isPairNestedInFourPairs . top $ sample1
+  print l0
   print ""
+  let l1 = findPrev isRegularNumber' =<< l0
+  print l1
+  print ""
+  let l2 = (findNext isPairNestedInFourPairs =<< l1) <|> l0
+  print l2
+  print ""
+  let l3 = findNext isRegularNumber' =<< (next . right) =<< l2
+  print l3
+  print ""
+  let l4 = (findPrev isPairNestedInFourPairs =<< l3) <|> l2
+  print l4
+  print ""
+  return ()
+
+-- print . fmap (upMost . replaceWithZero) . (findNext isPairNestedInFourPairs <=< addToPreviousRegularNumber 4 <=< findNext isPairNestedInFourPairs) . top $ sample2
+-- print ""
+
+-- print . (findNext isRegularNumber' <=< findNext isPairNestedInFourPairs) . top $ sample1
+-- print ""
