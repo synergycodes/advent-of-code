@@ -1,7 +1,6 @@
 module Main where
 
 import Control.Monad ((<=<))
-import Data.Foldable
 
 data SnailfishNumber
   = RegularNumber Int
@@ -41,31 +40,6 @@ upMost l = upMost . up $ l
 p = Pair
 
 n = RegularNumber
-
--- previous :: Location -> Maybe Location
--- previous l@(RegularNumber _, Right' _ _, _) = Just . left . up $ l
--- previous l@(RegularNumber _, Left' _ _, _) =
---   let goUp l'@(Pair _ _, Right' _ _, _) = Just . left . up $ l'
---       goUp l'@(Pair _ _, Left' _ _, _) = goUp . up $ l'
---       goUp l'@(Pair _ _, Top, _) = Nothing
---       goUp _ = Nothing
---       goDown l' =
---         let l'' = right l'
---          in if l'' == l' then l' else goDown l''
---    in fmap goDown . goUp . up $ l
--- previous _ = Nothing
-
--- next :: Location -> Maybe Location
--- next l@(RegularNumber _, Left' _ _, _) = Just . right . up $ l
--- next l@(RegularNumber _, Right' _ _, _) =
---   let goUp l'@(Pair _ _, Left' _ _, _) = Just . right . up $ l'
---       goUp l'@(Pair _ _, Right' _ _, _) = goUp . up $ l'
---       goUp l'@(Pair _ _, Top, _) = Nothing
---       goUp _ = Nothing
---       goDown l'@(RegularNumber _, _, _) = l'
---       goDown l' = goDown . left $ l'
---    in fmap goDown . goUp . up $ l
--- next _ = Nothing
 
 -- explode :: Location -> Maybe Location
 -- explode l@(Pair (RegularNumber nl) (RegularNumber nr), _, _) =
