@@ -3,6 +3,8 @@ module Main where
 import Control.Applicative (Alternative ((<|>)))
 import Control.Monad ((<=<))
 import Data.Maybe (fromMaybe)
+import Text.Trifecta
+import Text.Trifecta.Combinators
 
 data SnailfishNumber
   = RegularNumber Int
@@ -12,6 +14,19 @@ data SnailfishNumber
 instance Show SnailfishNumber where
   show (RegularNumber v) = show v
   show (Pair vl vr) = "[" ++ show vl ++ "," ++ show vr ++ "]"
+
+regularNumber :: Parser SnailfishNumber
+regularNumber = RegularNumber . fromIntegral <$> integer
+
+pair :: Parser SnailfishNumber
+pair =
+  between
+    (symbol "[")
+    (symbol "]")
+    (Pair <$> (regularNumber <|> pair) <*> (char ',' >> regularNumber <|> pair))
+
+snailfishNumber :: Parser SnailfishNumber
+snailfishNumber = regularNumber <|> pair
 
 isRegularNumber (RegularNumber _) = True
 isRegularNumber _ = False
@@ -154,6 +169,9 @@ main = do
   -- let s3 = upMost . explode <$> s2
   -- print s3
   -- print ""
+  let s = "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
+  let s' = parseString snailfishNumber mempty s
+  print $ (==) s . show <$> s'
   return ()
 
 -- [[[[[1,1],[2,2]],[3,3]],[4,4]],[5,5]]
