@@ -4,7 +4,12 @@ import Control.Applicative (Alternative ((<|>)))
 import Control.Monad ((<=<))
 import Data.Maybe (fromMaybe)
 import Text.Trifecta
-import Text.Trifecta.Combinators
+  ( CharParsing (char),
+    Parser,
+    between,
+    integer,
+    symbol,
+  )
 
 data SnailfishNumber
   = RegularNumber Int
@@ -132,48 +137,6 @@ reduce l =
 
 add a b = reduce $ p a b
 
-sample7 =
-  -- [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
-  p (p (p (p (p (n 4) (n 3)) (n 4)) (n 4)) (p (n 7) (p (p (n 8) (n 4)) (n 9)))) (p (n 1) (n 1))
-
-sample8 =
-  p (p (p (p (p (n 1) (n 1)) (p (n 2) (n 2))) (p (n 3) (n 3))) (p (n 4) (n 4))) (p (n 5) (n 5))
-
 main :: IO ()
 main = do
-  -- let s1 = add (p (n 1) (n 1)) (p (n 2) (n 2))
-  -- print s1
-  -- print ""
-  -- let s2 = add s1 (p (n 3) (n 3))
-  -- print s2
-  -- print ""
-  -- let s3 = add s2 (p (n 4) (n 4))
-  -- print s3
-  -- print ""
-  -- let s4 = add s3 (p (n 5) (n 5))
-  -- print s4
-  -- print ""
-  -- print sample7
-  -- print ""
-  -- print . reduce  $ sample7
-  -- print ""
-  -- print sample8
-  -- print ""
-  -- print . reduce $ sample8
-  let s1 = reduce sample8
-  print s1
-  print ""
-  -- let s2 = findNext isPairNestedInFourPairs $ top sample8
-  -- print s2
-  -- print ""
-  -- let s3 = upMost . explode <$> s2
-  -- print s3
-  -- print ""
-  let s = "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
-  let s' = parseString snailfishNumber mempty s
-  print $ (==) s . show <$> s'
   return ()
-
--- [[[[[1,1],[2,2]],[3,3]],[4,4]],[5,5]]
--- [[[[0,[3,2]],[3,3]],[4,4]],[5,5]]
--- [[[[3,0],[5,3]],[4,4]],[5,5]]
