@@ -99,7 +99,7 @@ findPrev p l = if p l then Just l else prev l >>= findPrev p
 findNext :: (Location -> Bool) -> Location -> Maybe Location
 findNext p l = if p l then Just l else next l >>= findNext p
 
-isPairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), (_, level)) = level > 4
+isPairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), (_, 5)) = True
 isPairNestedInFourPairs _ = False
 
 isRegularNumber' = isRegularNumber . fst
@@ -131,19 +131,39 @@ split (RegularNumber v, c) =
    in (p (n lv) (n rv), c)
 split l = l
 
-reduce l =
+reduce' l =
   case findNext isPairNestedInFourPairs $ top l of
-    Just p -> reduce . upMost . explode $ p
+    Just p -> (upMost . explode $ p, True)
     Nothing -> case findNext isRegularGreaterThan9 $ top l of
-      Just n -> reduce . upMost . split $ n
-      Nothing -> l
+      Just n -> (upMost . split $ n, True)
+      Nothing -> (l, False)
+
+reduce l =
+  let r (l, True) = r . reduce' $ l
+      r (l, False) = l
+   in r (l, True)
 
 add a b = reduce $ p a b
 
 main :: IO ()
 main = do
-  numbers <- readNumbers
-  print . foldl1 add $ numbers
+  let [n] = parseNumbers "[[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]],[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]]"
+  reduceAndPrint n
   return ()
 
-readNumbers = foldResult (const []) id . parseString (many snailfishNumber) mempty <$> readFile "data.txt"
+reduceAndPrint l =
+  let r (l, True) = do
+        print' l
+        r (reduce' l)
+      r (l, False) = do
+        print' l
+        return l
+   in r (l, True)
+
+readNumbers = parseNumbers <$> readFile "data.txt"
+
+parseNumbers = foldResult (const []) id . parseString (many snailfishNumber) mempty
+
+print' l = do
+  print l
+  print ""
