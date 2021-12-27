@@ -108,6 +108,13 @@ split (RegularNumber v, c) =
    in (p (n lv) (n rv), c)
 split l = l
 
+reduce l =
+  case findNext isPairNestedInFourPairs l of
+    Just p -> reduce . top . upMost . explode $ p
+    Nothing -> case findNext isRegularGreaterThan9 l of
+      Just n -> reduce . top . upMost . split $ n
+      Nothing -> l
+
 -- [[[[[9,8],1],2],3],4]
 sample1 =
   p (p (p (p (p (n 9) (n 8)) (n 1)) (n 2)) (n 3)) (n 4)
@@ -131,6 +138,10 @@ sample6 =
   -- [[[[0,7],4],[15,[0,13]]],[1,1]]
   p (p (p (p (n 0) (n 7)) (n 4)) (p (n 15) (p (n 0) (n 13)))) (p (n 1) (n 1))
 
+sample7 =
+  -- [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
+  p (p (p (p (p (n 4) (n 3)) (n 4)) (n 4)) (p (n 7) (p (p (n 8) (n 4)) (n 9)))) (p (n 1) (n 1))
+
 pred' (Pair (RegularNumber _) (RegularNumber _), _, _) = True
 pred' _ = False
 
@@ -141,7 +152,8 @@ main = do
   -- print ""
   -- print . split . top $ n 10
   -- print ""
-  print . fmap (upMost . split) . findNext isRegularGreaterThan9 . top $ sample6
+  -- print . fmap (upMost . split) . findNext isRegularGreaterThan9 . top $ sample6
+  print . reduce . top $ sample7
   return ()
 
 -- print . fmap (upMost . replaceWithZero) . (findNext isPairNestedInFourPairs <=< addToPreviousRegularNumber 4 <=< findNext isPairNestedInFourPairs) . top $ sample2
