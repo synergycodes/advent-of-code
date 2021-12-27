@@ -115,49 +115,11 @@ reduce l =
       Just n -> reduce . top . upMost . split $ n
       Nothing -> l
 
--- [[[[[9,8],1],2],3],4]
-sample1 =
-  p (p (p (p (p (n 9) (n 8)) (n 1)) (n 2)) (n 3)) (n 4)
-
--- [7,[6,[5,[4,[3,2]]]]]
-sample2 =
-  p (n 7) (p (n 6) (p (n 5) (p (n 4) (p (n 3) (n 2)))))
-
-sample3 =
-  p (p (n 1) (n 2)) (p (n 3) (n 4))
-
-sample4 =
-  -- [[1,2], 3]
-  p (p (n 1) (p (n 21) (n 22))) (n 3)
-
-sample5 =
-  -- [[6,[5,[4,[3,2]]]],1]
-  p (p (n 6) (p (n 5) (p (n 4) (p (n 3) (n 2))))) (n 1)
-
-sample6 =
-  -- [[[[0,7],4],[15,[0,13]]],[1,1]]
-  p (p (p (p (n 0) (n 7)) (n 4)) (p (n 15) (p (n 0) (n 13)))) (p (n 1) (n 1))
-
 sample7 =
   -- [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
   p (p (p (p (p (n 4) (n 3)) (n 4)) (n 4)) (p (n 7) (p (p (n 8) (n 4)) (n 9)))) (p (n 1) (n 1))
 
-pred' (Pair (RegularNumber _) (RegularNumber _), _, _) = True
-pred' _ = False
-
 main :: IO ()
 main = do
-  -- let l0 = findNext isPairNestedInFourPairs . top $ sample5
-  -- print $ upMost . explode <$> l0
-  -- print ""
-  -- print . split . top $ n 10
-  -- print ""
-  -- print . fmap (upMost . split) . findNext isRegularGreaterThan9 . top $ sample6
   print . reduce . top $ sample7
   return ()
-
--- print . fmap (upMost . replaceWithZero) . (findNext isPairNestedInFourPairs <=< addToPreviousRegularNumber 4 <=< findNext isPairNestedInFourPairs) . top $ sample2
--- print ""
-
--- print . (findNext isRegularNumber' <=< findNext isPairNestedInFourPairs) . top $ sample1
--- print ""
