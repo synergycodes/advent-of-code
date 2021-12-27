@@ -7,7 +7,10 @@ import Text.Trifecta
   ( CharParsing (char),
     Parser,
     between,
+    foldResult,
     integer,
+    many,
+    parseString,
     symbol,
   )
 
@@ -139,4 +142,8 @@ add a b = reduce $ p a b
 
 main :: IO ()
 main = do
+  numbers <- readNumbers
+  print . foldl1 add $ numbers
   return ()
+
+readNumbers = foldResult (const []) id . parseString (many snailfishNumber) mempty <$> readFile "data.txt"
