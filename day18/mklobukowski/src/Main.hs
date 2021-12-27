@@ -91,12 +91,12 @@ addRightValue (Pair _ (RegularNumber v), _) (RegularNumber v', c) =
   (RegularNumber (v + v'), c)
 addRightValue _ n = n
 
-explode l0@(Pair (RegularNumber rv) (RegularNumber lv), _) =
+explode l0@(lp@(Pair (RegularNumber rv) (RegularNumber lv)), _) =
   let l1 = fmap (addLeftValue l0) . findPrev isRegularNumber' $ l0
-      l2 = (findNext isPairNestedInFourPairs =<< l1) <|> Just l0
+      l2 = (findNext ((==) lp . fst) =<< l1) <|> Just l0
       l3 = fmap (addRightValue l0) . findNext isRegularNumber' =<< (next . right) =<< l2
-      l4 = (findPrev isPairNestedInFourPairs =<< l3) <|> l2
-   in replaceWithZero . fromMaybe l0 $ l4
+      l4 = (findPrev ((==) lp . fst) =<< l3) <|> l2
+   in maybe l0 replaceWithZero l4
 explode l = l
 
 isRegularGreaterThan9 (RegularNumber v, _) = v >= 10
@@ -109,17 +109,53 @@ split (RegularNumber v, c) =
 split l = l
 
 reduce l =
-  case findNext isPairNestedInFourPairs l of
-    Just p -> reduce . top . upMost . explode $ p
-    Nothing -> case findNext isRegularGreaterThan9 l of
-      Just n -> reduce . top . upMost . split $ n
+  case findNext isPairNestedInFourPairs $ top l of
+    Just p -> reduce . upMost . explode $ p
+    Nothing -> case findNext isRegularGreaterThan9 $ top l of
+      Just n -> reduce . upMost . split $ n
       Nothing -> l
+
+add a b = reduce $ p a b
 
 sample7 =
   -- [[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]
   p (p (p (p (p (n 4) (n 3)) (n 4)) (n 4)) (p (n 7) (p (p (n 8) (n 4)) (n 9)))) (p (n 1) (n 1))
 
+sample8 =
+  p (p (p (p (p (n 1) (n 1)) (p (n 2) (n 2))) (p (n 3) (n 3))) (p (n 4) (n 4))) (p (n 5) (n 5))
+
 main :: IO ()
 main = do
-  print . reduce . top $ sample7
+  -- let s1 = add (p (n 1) (n 1)) (p (n 2) (n 2))
+  -- print s1
+  -- print ""
+  -- let s2 = add s1 (p (n 3) (n 3))
+  -- print s2
+  -- print ""
+  -- let s3 = add s2 (p (n 4) (n 4))
+  -- print s3
+  -- print ""
+  -- let s4 = add s3 (p (n 5) (n 5))
+  -- print s4
+  -- print ""
+  -- print sample7
+  -- print ""
+  -- print . reduce  $ sample7
+  -- print ""
+  -- print sample8
+  -- print ""
+  -- print . reduce $ sample8
+  let s1 = reduce sample8
+  print s1
+  print ""
+  -- let s2 = findNext isPairNestedInFourPairs $ top sample8
+  -- print s2
+  -- print ""
+  -- let s3 = upMost . explode <$> s2
+  -- print s3
+  -- print ""
   return ()
+
+-- [[[[[1,1],[2,2]],[3,3]],[4,4]],[5,5]]
+-- [[[[0,[3,2]],[3,3]],[4,4]],[5,5]]
+-- [[[[3,0],[5,3]],[4,4]],[5,5]]
