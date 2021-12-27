@@ -7,7 +7,11 @@ import Data.Maybe (fromMaybe)
 data SnailfishNumber
   = RegularNumber Int
   | Pair SnailfishNumber SnailfishNumber
-  deriving (Show, Eq)
+  deriving (Eq)
+
+instance Show SnailfishNumber where
+  show (RegularNumber v) = show v
+  show (Pair vl vr) = "[" ++ show vl ++ "," ++ show vr ++ "]"
 
 isRegularNumber (RegularNumber _) = True
 isRegularNumber _ = False
@@ -95,6 +99,15 @@ explode l0@(Pair (RegularNumber rv) (RegularNumber lv), _) =
    in replaceWithZero . fromMaybe l0 $ l4
 explode l = l
 
+isRegularGreaterThan9 (RegularNumber v, _) = v >= 10
+isRegularGreaterThan9 _ = False
+
+split (RegularNumber v, c) =
+  let lv = fromIntegral $ floor (fromIntegral v / 2)
+      rv = fromIntegral $ ceiling (fromIntegral v / 2)
+   in (p (n lv) (n rv), c)
+split l = l
+
 -- [[[[[9,8],1],2],3],4]
 sample1 =
   p (p (p (p (p (n 9) (n 8)) (n 1)) (n 2)) (n 3)) (n 4)
@@ -114,14 +127,21 @@ sample5 =
   -- [[6,[5,[4,[3,2]]]],1]
   p (p (n 6) (p (n 5) (p (n 4) (p (n 3) (n 2))))) (n 1)
 
+sample6 =
+  -- [[[[0,7],4],[15,[0,13]]],[1,1]]
+  p (p (p (p (n 0) (n 7)) (n 4)) (p (n 15) (p (n 0) (n 13)))) (p (n 1) (n 1))
+
 pred' (Pair (RegularNumber _) (RegularNumber _), _, _) = True
 pred' _ = False
 
 main :: IO ()
 main = do
-  let l0 = findNext isPairNestedInFourPairs . top $ sample5
-  print $ upMost . explode <$> l0
-  print ""
+  -- let l0 = findNext isPairNestedInFourPairs . top $ sample5
+  -- print $ upMost . explode <$> l0
+  -- print ""
+  -- print . split . top $ n 10
+  -- print ""
+  print . fmap (upMost . split) . findNext isRegularGreaterThan9 . top $ sample6
   return ()
 
 -- print . fmap (upMost . replaceWithZero) . (findNext isPairNestedInFourPairs <=< addToPreviousRegularNumber 4 <=< findNext isPairNestedInFourPairs) . top $ sample2
