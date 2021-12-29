@@ -99,7 +99,7 @@ findPrev p l = if p l then Just l else prev l >>= findPrev p
 findNext :: (Location -> Bool) -> Location -> Maybe Location
 findNext p l = if p l then Just l else next l >>= findNext p
 
-isPairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), (_, 5)) = True
+isPairNestedInFourPairs (Pair (RegularNumber _) (RegularNumber _), (_, l)) = l > 4
 isPairNestedInFourPairs _ = False
 
 isRegularNumber' = isRegularNumber . fst
@@ -116,9 +116,9 @@ addRightValue _ n = n
 
 explode l0@(lp@(Pair (RegularNumber rv) (RegularNumber lv)), _) =
   let l1 = fmap (addLeftValue l0) . findPrev isRegularNumber' $ l0
-      l2 = (findNext ((==) lp . fst) =<< l1) <|> Just l0
+      l2 = (findNext ((==) lp . fst) =<< next =<< l1) <|> Just l0
       l3 = fmap (addRightValue l0) . findNext isRegularNumber' =<< (next . right) =<< l2
-      l4 = (findPrev ((==) lp . fst) =<< l3) <|> l2
+      l4 = (findPrev ((==) lp . fst) =<< prev =<< l3) <|> l2
    in maybe l0 replaceWithZero l4
 explode l = l
 
@@ -133,32 +133,38 @@ split l = l
 
 reduce' l =
   case findNext isPairNestedInFourPairs $ top l of
-    Just p -> (upMost . explode $ p, True)
+    Just p -> ("Exploded", upMost . explode $ p, True)
     Nothing -> case findNext isRegularGreaterThan9 $ top l of
-      Just n -> (upMost . split $ n, True)
-      Nothing -> (l, False)
+      Just n -> ("Splitted", upMost . split $ n, True)
+      Nothing -> ("", l, False)
 
 reduce l =
-  let r (l, True) = r . reduce' $ l
-      r (l, False) = l
-   in r (l, True)
+  let r (_, l, True) = r . reduce' $ l
+      r (_, l, False) = l
+   in r ("", l, True)
 
 add a b = reduce $ p a b
 
 main :: IO ()
 main = do
+  -- let [n] = parseNumbers "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]"
   let [n] = parseNumbers "[[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]],[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]]"
+  -- print' n
+  -- print' . fmap (upMost . explode) . findNext isPairNestedInFourPairs . top $ n
   reduceAndPrint n
   return ()
 
 reduceAndPrint l =
   let r (l, True) = do
-        print' l
-        r (reduce' l)
+        let (desc, l', cont) = reduce' l
+        print $ desc ++ " " ++ show l'
+        r (l', cont)
       r (l, False) = do
-        print' l
+        print l
         return l
-   in r (l, True)
+   in do
+     print l
+     r (l, True)
 
 readNumbers = parseNumbers <$> readFile "data.txt"
 
