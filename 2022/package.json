@@ -1,0 +1,10 @@
+{
+  "name": "synergy-aoc-2022",
+  "version": "0.0.0",
+  "description": "",
+  "author": "Synergy Codes",
+  "license": "undefined",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
