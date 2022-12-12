@@ -5,6 +5,7 @@
   "author": "Synergy Codes",
   "license": "undefined",
   "dependencies": {
+    "@tyriar/fibonacci-heap": "^2.0.9",
     "lodash": "^4.17.21"
   }
 }
